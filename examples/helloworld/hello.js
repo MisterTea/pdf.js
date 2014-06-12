@@ -31,7 +31,25 @@ PDFJS.getDocument('helloworld.pdf').then(function(pdf) {
       canvasContext: context,
       viewport: viewport
     };
-    page.render(renderContext);
+    page.render(renderContext).then(function() {
+        var imageData = context.getImageData(0, 0, viewport.width, viewport.height);
+        var data = imageData.data;
+
+        for(var i = 0; i < data.length; i += 4) {
+          // red
+          data[i] = 255 - data[i];
+          // green
+          data[i + 1] = 255 - data[i + 1];
+          // blue
+          data[i + 2] = 255 - data[i + 2];
+        }
+
+        // overwrite original image
+        context.putImageData(imageData, 0, 0);
+      },
+      function() {
+        console.log("ERROR");
+      });
   });
 });
 

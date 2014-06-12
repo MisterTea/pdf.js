@@ -620,8 +620,34 @@ var PageView = function pageView(container, id, scale,
     };
     var renderTask = this.renderTask = this.pdfPage.render(renderContext);
 
-    this.renderTask.promise.then(
+    this.renderTask.then(
       function pdfPageRenderCallback() {
+        renderContext.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
+
+        console.log("GETTING IMAGE DATA: " + renderContext.canvasContext.canvas.width + " " + renderContext.canvasContext.canvas.height);
+        var imageData = renderContext.canvasContext.getImageData(0, 0, renderContext.canvasContext.canvas.width, renderContext.canvasContext.canvas.height);
+        console.log("GETTING RAW DATA: " + imageData.width + " " + imageData.height);
+        var data = imageData.data;
+        console.log("DATA LENGTH: " + data.length);
+
+        console.log("FLIPPING COLORS");
+        var m=0;
+        for(var i = 0; i < data.length; i += 4) {
+          // red
+          data[i] = 255 - data[i];
+          // green
+          data[i + 1] = 255 - data[i + 1];
+          // blue
+          data[i + 2] = 255 - data[i + 2];
+          m=i;
+        }
+        console.log("DONE FLIPPING. REPLACING " + m);
+
+        // overwrite original image
+        console.log("GETTING RAW DATA: " + imageData.width + " " + imageData.height);
+        renderContext.canvasContext.putImageData(imageData, 0, 0);
+        console.log("DONE REPLACING");
+
         pageViewDrawCallback(null);
         if (textLayer) {
           self.getTextContent().then(
